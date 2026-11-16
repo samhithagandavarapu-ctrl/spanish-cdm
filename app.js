@@ -436,6 +436,8 @@ function renderProgress(){
     row.innerHTML = `<span class="m ${d ? "y" : ""}">${d ? "✓" : ""}</span><span>${esc(L.title)} <span class="small muted">· Unit ${L.unit+1}</span></span><span style="color:var(--gold-d)">${d ? starsTxt(d.stars) : ""}</span>`;
     row.addEventListener("click", () => openLessonSheet(L));
     $("gramList").appendChild(row); });
+  const g = (S.grades || []).slice(-8).reverse();
+  $("gradeList").innerHTML = g.length ? g.map(x => `<div class="gl"><span class="m ${/High|Intermediate/.test(x.lv) ? "y" : ""}">${/High|Intermediate/.test(x.lv) ? "✓" : ""}</span><span>${x.k === "write" ? "✏️ Writing" : x.k === "interview" ? "🎤 Interview" : "⏱️ Talk"} · ${esc(x.lv)} <span class="small muted">· ${esc(x.d)}</span></span><b>${x.sc}</b></div>`).join("") : `<p class="small muted">No teacher grades yet. Do a mock interview, one-minute talk or writing in Practice.</p>`;
   $("testDate").value = S.testDate || ""; $("unlockAll").checked = !!S.unlockAll;
 }
 $("testDate").addEventListener("change", e => { S.testDate = e.target.value; save(); drawTop(); renderProgress(); });
@@ -544,6 +546,18 @@ function checkHTML(res, model){
 /* ============ MIC (browser speech-to-text, free) ============ */
 const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
 function micButton(targetId, onDone){
+  if(window.claude && typeof window.claude.use === "function"){
+    const b = document.createElement("button"); b.type = "button"; b.className = "btn blue"; b.textContent = "🎤 Talk";
+    let on = false, base = "", finals = "";
+    window.claude.use("dictation").then(d => {
+      if(!d){ b.remove(); return; }
+      d.onPartial(({text}) => { if(on){ const t = $(targetId); if(t){ t.value = base + finals + text; } } });
+      d.onFinal(({text}) => { if(on){ finals += text + " "; const t = $(targetId); if(t){ t.value = base + finals; t.dispatchEvent(new Event("input")); } } });
+      d.onState(({state}) => { const was = on; on = state === "listening"; b.textContent = on ? "■ Stop" : "🎤 Talk"; b.className = on ? "btn red" : "btn blue"; if(was && !on){ const t = $(targetId); if(t) t.value = (base + finals).trim(); onDone && onDone(); } });
+      b.addEventListener("click", () => { if(on){ d.stop().catch(()=>{}); return; } const t = $(targetId); base = t && t.value ? t.value.trimEnd() + " " : ""; finals = ""; on = true; d.start().catch(e => { on = false; if(e && e.code === "not_granted"){ b.remove(); toast("Mic is off for this page. Type your answer instead."); } }); });
+    }).catch(() => b.remove());
+    return b;
+  }
   if(!SR) return null;
   const b = document.createElement("button"); b.type = "button"; b.className = "btn blue"; b.textContent = "🎤 Talk";
   let r = null, on = false;
@@ -559,6 +573,51 @@ function micButton(targetId, onDone){
     try { r.start(); } catch(e){}
   });
   return b;
+}
+
+/* ============ CLAUDE TEACHER GRADING (only inside Claude) ============ */
+let SAMPLE = null, DICT = null;
+if(window.claude && typeof window.claude.use === "function"){
+  window.claude.use("sample").then(x => { SAMPLE = x; }).catch(() => {});
+  window.claude.use("dictation").then(x => { DICT = x; }).catch(() => {});
+}
+async function askJSON(prompt, tier){
+  if(typeof SAMPLE.json === "function") return await SAMPLE.json(prompt, {modelTier: tier || "default", cache:false});
+  const r = await SAMPLE(prompt, {modelTier: tier || "default", cache:false});
+  return JSON.parse(r.text.slice(r.text.indexOf("{"), r.text.lastIndexOf("}") + 1));
+}
+const aiErr = e => e && e.code === "rate_limited" ? "Too many requests right now. Wait a minute and try again." : e && e.code === "not_granted" ? "Teacher grading is turned off for this page." : "Teacher grading didn't work this time. Here's the automatic check instead.";
+function gradePrompt(kind, task, answer){
+  return `You are a warm but honest high school Spanish teacher grading a student practicing for the WCPSS Spanish CDM proficiency test (like Avant STAMP). The student needs ACTFL Novice High.
+Kind: ${kind === "speak" ? "spoken answer (speech-to-text transcript: ignore punctuation, capitalization and obvious transcription slips)" : kind === "interview" ? "five spoken interview answers (speech-to-text transcripts)" : "written answer"}.
+Task: ${task}
+Student's answer:
+"""${answer}"""
+Grade it. Return ONLY JSON:
+{"level": one of "Novice Low","Novice Mid","Novice High","Intermediate Low","Intermediate Mid",
+ "score": 0-100 (70 = solid Novice High),
+ "summary": 1-2 plain English sentences to the student as "you",
+ "sentences": [ for EVERY sentence the student wrote or said, in order: {"you": their sentence, "fixed": the corrected Spanish (same as theirs if already correct), "ok": true if it had no errors, "why": short plain English note on what was fixed, or "" } ],
+ "good": [up to 2 short strings on what worked],
+ "tip": one concrete thing to do next time to score higher,
+ "model": a model Novice High answer in Spanish, 5-7 simple sentences}`;
+}
+function teacherHTML(fb){
+  const lv = fb.level || "?", ok = /High|Intermediate/.test(lv), sc = Math.max(0, Math.min(100, +fb.score || 0));
+  const cls = ok ? "good" : /Mid/.test(lv) ? "mid" : "low";
+  return `<div class="verdict ${cls}"><span class="n">${sc}</span><span>${esc(lv)} <span class="small" style="font-weight:700">· Teacher grade</span><br><span class="small" style="font-weight:700">${esc(fb.summary || "")}</span></span></div>
+  ${(fb.sentences || []).length ? `<div class="card stack" style="gap:10px"><h3>Sentence by sentence</h3>${fb.sentences.map(x => x.ok ? `<div class="check"><span class="m y">✓</span><span>${esc(x.you)}</span></div>` : `<div class="fix"><span class="w">${esc(x.you)}</span><div><b class="r">${esc(x.fixed)}</b></div>${x.why ? `<div class="small">${esc(x.why)}</div>` : ""}</div>`).join("")}</div>` : ""}
+  ${(fb.good || []).length ? `<div class="result good">What worked: ${fb.good.map(esc).join(" · ")}</div>` : ""}
+  ${fb.tip ? `<div class="gloss"><b>Next time:</b> ${esc(fb.tip)}</div>` : ""}
+  ${fb.model ? `<details class="card"><summary style="cursor:pointer"><b>See a Novice High model answer</b></summary><p class="passage" style="margin-top:8px">${esc(fb.model)}</p><button class="btn sm blue" type="button" data-say="${esc(fb.model)}">🔊 Hear it</button></details>` : ""}`;
+}
+function saveGrade(kind, fb){ S.grades = (S.grades || []).concat([{d: dkey(new Date()), k: kind, lv: fb.level || "?", sc: +fb.score || 0}]).slice(-100); save(); }
+async function teacherGrade(kind, task, answer, out, btn, fallbackModel){
+  if(!SAMPLE){ const r = analyze(answer, kind === "write" ? "write" : "speak"); out.innerHTML = checkHTML(r, fallbackModel) + `<p class="small muted">Teacher grading works when you open this app inside Claude.</p>`; wireSay(out); addXP(r.score * 2 + 3); return; }
+  btn.disabled = true; const old = btn.textContent; btn.textContent = "Grading…"; out.innerHTML = `<p class="muted">Your teacher is reading it…</p>`;
+  try{ const fb = await askJSON(gradePrompt(kind, task, answer)); out.innerHTML = teacherHTML(fb); saveGrade(kind, fb); addXP(Math.round((+fb.score || 0) / 10) + 5); toast(`+${Math.round((+fb.score || 0) / 10) + 5} XP`); }
+  catch(e){ const r = analyze(answer, kind === "write" ? "write" : "speak"); out.innerHTML = `<div class="result bad">${aiErr(e)}</div>` + checkHTML(r, fallbackModel); }
+  finally{ btn.disabled = false; btn.textContent = old; wireSay(out); }
 }
 
 /* ============ PRACTICE ============ */
@@ -589,10 +648,23 @@ function pInterview(area){
   let c = null;
   const add = (who, html) => { const m = document.createElement("div"); m.className = "msg " + who; m.innerHTML = html; $("chat").appendChild(m); $("chat").scrollTop = 1e6; return m; };
   const ask = silent => { const q = c.qs[c.i]; $("ivN").textContent = `Question ${c.i+1} of 5`; add("them", `${esc(q[0])}<span class="en" ${c.en ? "" : "hidden"}>${esc(q[1])}</span>`); if(!silent) say(q[0], 0.9); };
-  const start = silent => { const t = topicVal("ivT"); c = {qs: INTERVIEW[t], i:0, pts:0, en:false}; $("chat").innerHTML = ""; $("ivEnd").innerHTML = ""; $("ivIn").hidden = false; add("them", `¡Hola! Vamos a hablar. Contesta con oraciones completas.<span class="en" hidden>Hi! Let's talk. Answer in full sentences.</span>`); ask(silent); };
+  const start = silent => { const t = topicVal("ivT"); c = {qs: INTERVIEW[t], i:0, pts:0, en:false, ans:[]}; $("chat").innerHTML = ""; $("ivEnd").innerHTML = ""; $("ivIn").hidden = false; add("them", `¡Hola! Vamos a hablar. Contesta con oraciones completas.<span class="en" hidden>Hi! Let's talk. Answer in full sentences.</span>`); ask(silent); };
   const send = () => {
     const text = $("ivText").value.trim(); if(!text || c.i >= 5) return; $("ivText").value = "";
-    const q = c.qs[c.i]; add("me", esc(text));
+    const q = c.qs[c.i]; add("me", esc(text)); c.ans.push(`Q: ${q[0]}\nA: ${text}`);
+    if(SAMPLE){
+      const m = add("them", `<span class="muted">Checking…</span>`); const qi = c.i; c.i++;
+      askJSON(`A high school Spanish student (target ACTFL Novice High) answered an interview question out loud (speech-to-text transcript; ignore punctuation and capitalization).\nQuestion: ${q[0]}\nAnswer: ${text}\nReturn ONLY JSON: {"ok": true if the answer has no grammar errors and is a full sentence, "fixed": the corrected answer in Spanish (same as theirs if correct), "why": one short plain English note on what to fix, or "", "better": one short tip to make it stronger (add a reason, a detail, past tense…)}`, "quick")
+        .then(r => { m.innerHTML = `${r.ok ? "✅ Correct!" : `✏️ <b>${esc(r.fixed || "")}</b>${r.why ? `<br><span class="small">${esc(r.why)}</span>` : ""}`}${r.better ? `<span class="note">💡 ${esc(r.better)}</span>` : ""}<span class="note">Example: <i>${esc(q[2])}</i></span>`; })
+        .catch(() => { m.innerHTML = `<span class="note">Example: <i>${esc(q[2])}</i></span>`; });
+      m.addEventListener("click", () => say(q[2], 0.92));
+      if(c.i < 5) return setTimeout(() => ask(false), 900);
+      $("ivIn").hidden = true; $("ivN").textContent = "Done!";
+      $("ivEnd").innerHTML = `<div id="ivG"></div><button class="btn pink" id="ivAgain" style="margin-top:10px">Another interview</button>`;
+      $("ivAgain").addEventListener("click", () => { $("ivT").value = String(rnd(7)); start(false); });
+      const tmp = document.createElement("button"); teacherGrade("interview", "Answer five interview questions about: " + TOPICS[topicVal("ivT")], c.ans.join("\n\n"), $("ivG"), tmp, MODEL[0]);
+      return;
+    }
     const low = noAcc(norm(text)), toks = low.split(" ").filter(Boolean);
     const j = [[toks.length >= 6 && toks.some(t => VFORM[t] || looksLikeVerb(t)), "Full sentence"], [/\b(y|pero|porque|tambien|ademas)\b/.test(low), "Added a detail or reason"]];
     if(q[3]) j.push([toks.some(t => PASTF.has(t)), "Used the past tense"]);
@@ -621,7 +693,7 @@ function pMinute(area){
     <h3 id="mP"></h3><div class="pill" style="align-self:flex-start">Answer → Detail → Reason (porque) → Extra (ayer… / voy a…)</div>
     <div class="row between"><span class="timer" id="mTimer">1:00</span><div class="row" id="mMic"><button class="btn" id="mGo">Start timer</button></div></div>
     <textarea class="answer" id="mText" placeholder="Talk (🎤) or type what you said"></textarea><div class="accents" data-for="mText"></div>
-    <button class="btn pink" id="mCheck">Check my answer</button><div id="mFb" class="stack"></div></div>`;
+    <button class="btn pink" id="mCheck">${SAMPLE ? "Get teacher grade" : "Check my answer"}</button><div id="mFb" class="stack"></div></div>`;
   wireAccents(area.querySelector(".accents"));
   const np = () => { $("mP").textContent = pick(PROMPTS[topicVal("mT")]); $("mFb").innerHTML = ""; };
   let left = 60, iv = null;
@@ -629,20 +701,20 @@ function pMinute(area){
   $("mGo").addEventListener("click", () => { if(iv){ clearInterval(iv); iv = null; left = 60; draw(); $("mGo").textContent = "Start timer"; return; } left = 60; $("mGo").textContent = "Reset"; iv = setInterval(() => { left--; draw(); if(left <= 0){ clearInterval(iv); iv = null; $("mTimer").textContent = "Done!"; $("mGo").textContent = "Start timer"; } }, 1000); });
   const mic = micButton("mText"); if(mic){ $("mMic").prepend(mic); mic.addEventListener("click", () => { if(!iv) $("mGo").click(); }); }
   $("mNew").addEventListener("click", np); $("mT").addEventListener("change", np);
-  $("mCheck").addEventListener("click", () => { const t = $("mText").value; if(t.trim().split(/\s+/).length < 3) return toast("Say or type your answer first"); const r = analyze(t, "speak"); $("mFb").innerHTML = checkHTML(r, MODEL[topicVal("mT")]); wireSay($("mFb")); addXP(r.score * 2 + 3); });
+  $("mCheck").addEventListener("click", e => { const t = $("mText").value; if(t.trim().split(/\s+/).length < 3) return toast("Say or type your answer first"); teacherGrade("speak", $("mP").textContent, t, $("mFb"), e.currentTarget, MODEL[topicVal("mT")]); });
   np();
 }
 function pWrite(area){
   area.innerHTML = `<div class="card stack"><div class="row between">${topicSelect("wT")}<button class="btn sm" id="wNew">New prompt</button></div>
     <h3 id="wP"></h3><div class="row" id="wGoals"></div>
     <textarea class="answer" id="wText" placeholder="Write 6–8 sentences. No looking things up!"></textarea><div class="accents" data-for="wText"></div>
-    <button class="btn pink" id="wCheck">Check my writing</button><div id="wFb" class="stack"></div></div>`;
+    <button class="btn pink" id="wCheck">${SAMPLE ? "Get teacher grade" : "Check my writing"}</button><div id="wFb" class="stack"></div></div>`;
   wireAccents(area.querySelector(".accents"));
   const np = () => { $("wP").textContent = pick(PROMPTS[topicVal("wT")]); $("wFb").innerHTML = ""; };
   const goals = () => { const r = analyze($("wText").value, "write"), lab = ["Sentences","Verbs","Connectors","Reason","Past/plans","All Spanish"]; $("wGoals").innerHTML = r.checks.map((c,i) => `<span class="pill" style="${c[0] ? "background:var(--good-s);border-color:var(--good);color:var(--good-d)" : ""}">${c[0] ? "✓" : "○"} ${lab[i]}</span>`).join(""); };
   $("wText").addEventListener("input", goals);
   $("wNew").addEventListener("click", np); $("wT").addEventListener("change", np);
-  $("wCheck").addEventListener("click", () => { const t = $("wText").value; if(t.trim().split(/\s+/).length < 5) return toast("Write a few sentences first"); const r = analyze(t, "write"); $("wFb").innerHTML = checkHTML(r, MODEL[topicVal("wT")]); wireSay($("wFb")); addXP(r.score * 2 + 3); });
+  $("wCheck").addEventListener("click", e => { const t = $("wText").value; if(t.trim().split(/\s+/).length < 5) return toast("Write a few sentences first"); teacherGrade("write", $("wP").textContent, t, $("wFb"), e.currentTarget, MODEL[topicVal("wT")]); });
   np(); goals();
 }
 function pListen(area){
