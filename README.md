@@ -1,7 +1,10 @@
-# Spanish CDM Daily Practice
+# ¡Vamos! Spanish CDM
 
-A daily practice app for the WCPSS Spanish Credit by Demonstrated Mastery test (target: Novice High).
+A Duolingo-style course for the WCPSS Spanish Credit by Demonstrated Mastery test (target: Novice High).
 
-The whole app is one file, `index.html`. It has no build step and no dependencies, so it deploys as a static site on Vercel or any other host.
+- **Learn:** 8 units and 31 lessons on a path. Each lesson teaches one grammar point, then quizzes you with mixed exercises.
+- **Practice:** a mock interview, a one-minute talk, writing with a checklist, listening games, a verb speed round, and a redo of your missed questions.
+- **Progress:** streak, XP chart, unit progress and a grammar checklist.
+- **Notes:** every grammar tip in one place.
 
-Progress is saved in your browser (localStorage), so use the same browser every day.
+The app is plain static files (`index.html`, `app.js`, `course.js`), so Vercel needs no build settings. Progress saves in your browser (localStorage). Everything runs in the browser, with no AI calls.
