@@ -1,10 +1,13 @@
 # ¡Vamos! Spanish CDM
 
-A Duolingo-style course for the WCPSS Spanish Credit by Demonstrated Mastery test (target: Novice High).
+A 30-day Spanish writing journal plus grammar lessons, built for the WCPSS Spanish Credit by Demonstrated Mastery test (target: Novice High).
 
-- **Learn:** 8 units and 31 lessons on a path. Each lesson teaches one grammar point, then quizzes you with mixed exercises.
-- **Practice:** a mock interview, a one-minute talk, writing with a checklist, listening games, a verb speed round, and a redo of your missed questions.
-- **Progress:** streak, XP chart, unit progress and a grammar checklist.
-- **Notes:** every grammar tip in one place.
+- **Hoy (Today):** a daily journal prompt with sentence starters, useful words, and a built-in word lookup. Your entry is graded on your actual Spanish: accuracy, vocabulary, sentence complexity and how easy it is to understand. You get sentence-by-sentence corrections, then rewrite it from memory.
+- **Diario:** every entry with its grade and corrections.
+- **Words:** words you looked up and fixes from your grades, with spaced review.
+- **Grammar:** 31 short lessons, notes, and extra test-style practice.
+- **Progress:** a 30-day tracker, your score trend, skill averages and the mistakes you make most.
 
-The app is plain static files (`index.html`, `app.js`, `course.js`), so Vercel needs no build settings. Progress saves in your browser (localStorage). Everything runs in the browser, with no AI calls.
+Full grading, Claude lookups and account saving only work when the app is opened inside Claude. On a normal website it uses an automatic checklist, and entries are saved in the browser.
+
+The site is static files only (`index.html`, `app.js`, `course.js`, `journal.js`), so there's no build step.

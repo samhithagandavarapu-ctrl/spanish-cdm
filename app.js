@@ -578,7 +578,7 @@ function micButton(targetId, onDone){
 /* ============ CLAUDE TEACHER GRADING (only inside Claude) ============ */
 let SAMPLE = null, DICT = null;
 if(window.claude && typeof window.claude.use === "function"){
-  window.claude.use("sample").then(x => { SAMPLE = x; }).catch(() => {});
+  window.claude.use("sample").then(x => { SAMPLE = x; if(x && ((location.hash || "#hoy") === "#hoy") && window.J && window.J.isReady()) route(); }).catch(() => {});
   window.claude.use("dictation").then(x => { DICT = x; }).catch(() => {});
 }
 async function askJSON(prompt, tier){
@@ -792,17 +792,25 @@ function pVerbs(area){
 }
 
 /* ============ ROUTER ============ */
-const VIEWS = ["learn","practice","progress","notes"];
+const VIEWS = ["hoy","diario","palabras","learn","practice","progress","notes"];
 function route(){
-  let v = (location.hash || "#learn").slice(1); if(!VIEWS.includes(v)) v = "learn";
+  let v = (location.hash || "#hoy").slice(1); if(!VIEWS.includes(v)) v = "hoy";
   VIEWS.forEach(x => $("v-"+x).classList.toggle("on", x === v));
-  document.querySelectorAll(".tabbar a").forEach(a => a.setAttribute("aria-current", a.getAttribute("href") === "#"+v ? "page" : "false"));
+  const tab = (v === "practice" || v === "notes") ? "learn" : v;
+  document.querySelectorAll(".tabbar a").forEach(a => a.setAttribute("aria-current", a.getAttribute("href") === "#"+tab ? "page" : "false"));
+  document.body.classList.toggle("wide", v === "hoy");
+  const J = window.J;
+  if(J && v === "hoy") J.renderHoy();
+  if(J && v === "diario") J.renderDiario();
+  if(J && v === "palabras") J.renderPalabras();
   if(v === "learn") renderLearn();
-  if(v === "progress") renderProgress();
+  if(v === "progress"){ renderProgress(); J && J.renderJournalProgress(); }
   if(v === "notes" && !$("notesList").children.length) renderNotes();
   if(v === "practice") $("mistakeCount").textContent = S.missed.length ? `${S.missed.length} question${S.missed.length === 1 ? "" : "s"} to redo` : "Redo questions you missed";
   drawTop();
 }
 window.addEventListener("hashchange", () => { route(); window.scrollTo(0,0); });
+window.APP = {$, esc, say, toast, wireAccents, wireSay, noAcc, norm, dkey, shuffle, UNITS, LOCAL, micButton, askJSON, aiErr, analyze, checkHTML, addXP, openSheet, closeSheet, route,
+  hasSample: () => !!SAMPLE, openLessonById: id => { const L = ALL.find(x => x.id === id); if(L) openLessonSheet(L); }};
 route();
 })();

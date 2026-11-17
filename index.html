@@ -62,7 +62,7 @@ a{color:inherit}
 
 /* bottom nav */
 .tabbar{position:fixed;left:0;right:0;bottom:0;z-index:30;background:var(--card);border-top:2px solid var(--line)}
-.tabbar .wrap{display:grid;grid-template-columns:repeat(4,1fr);padding-top:6px;padding-bottom:calc(6px + env(safe-area-inset-bottom))}
+.tabbar .wrap{display:grid;grid-template-columns:repeat(5,1fr);padding-top:6px;padding-bottom:calc(6px + env(safe-area-inset-bottom))}
 .tabbar a{display:flex;flex-direction:column;align-items:center;gap:2px;text-decoration:none;color:var(--muted);font-size:.78rem;font-weight:800;padding:6px 0;border-radius:14px}
 .tabbar a .i{font-size:1.4rem;line-height:1}
 .tabbar a[aria-current="page"]{color:var(--pink);background:var(--pink-s)}
@@ -198,6 +198,48 @@ textarea.answer{min-height:150px;resize:vertical;line-height:1.55}
 .timer{font-family:var(--display);font-size:2.2rem;font-weight:700;font-variant-numeric:tabular-nums}
 .result{padding:10px 14px;border-radius:14px;font-weight:800}
 .result.good{background:var(--good-s);color:var(--good-d)} .result.bad{background:var(--bad-s);color:var(--bad-d)}
+
+/* journal */
+body.wide main.wrap,body.wide .top .wrap{max-width:1080px}
+.hoy-grid{display:grid;grid-template-columns:1fr;gap:16px}
+@media (min-width:900px){.hoy-grid{grid-template-columns:minmax(0,1fr) 340px;align-items:start}.hoy-grid .side{position:sticky;top:76px;max-height:calc(100vh - 170px);overflow-y:auto;padding-bottom:6px}}
+.prompt-card{background:linear-gradient(135deg,#fff 0%,#fff0f7 100%)}
+.jp{font-size:1.75rem;color:var(--ink)}
+.answer.journal-box{min-height:320px;font-size:1.12rem;line-height:1.7}
+.pinkpill{background:var(--pink-s);border-color:transparent;color:var(--pink-d)}
+.bluepill{background:var(--blue-s);border-color:transparent;color:var(--blue-d)}
+.pill.tiny{font-size:.72rem;padding:2px 8px;align-self:flex-start}
+.starter{display:flex;flex-direction:column;gap:2px;text-align:left;border:2px solid var(--line2);background:var(--card);border-radius:14px;padding:9px 12px;cursor:pointer;box-shadow:0 3px 0 var(--line2)}
+.starter b{font-weight:800} .starter span{font-size:.85rem;color:var(--muted)}
+.starter:hover{border-color:var(--pink)}
+.wordchips{display:flex;flex-wrap:wrap;gap:6px}
+.wchip{border:2px solid var(--line2);background:var(--card);border-radius:12px;padding:6px 10px;cursor:pointer;font-size:.92rem;text-align:left}
+.wchip span{color:var(--muted);font-weight:700}
+.wchip:hover{border-color:var(--blue)}
+.lk{border:2px solid var(--line);border-radius:14px;padding:10px 12px;display:flex;flex-direction:column;gap:6px}
+.lk.claude{border-color:var(--blue);background:var(--blue-s)}
+.extlink{color:var(--blue-d);font-weight:800}
+.bigscore{width:92px;height:92px;flex:none;border-radius:50%;border:8px solid var(--c);display:grid;place-items:center;text-align:center;line-height:1}
+.bigscore b{display:block;font-family:var(--display);font-size:2rem}
+.bigscore span{font-size:.75rem;color:var(--muted)}
+.bigscore.sm{width:56px;height:56px;border-width:5px}.bigscore.sm b{font-size:1.15rem}
+.grid2{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:12px}
+.sent{display:grid;grid-template-columns:28px 1fr;gap:8px;padding:10px 0;border-bottom:2px solid var(--line)}
+.sent:last-child{border-bottom:0}
+.sent .w{text-decoration:line-through;color:var(--bad-d)} .sent .r{color:var(--good-d)}
+.sent.ok .m{color:var(--good)}
+.entry{display:grid;grid-template-columns:auto 1fr;gap:14px;align-items:center;border:2px solid var(--line);background:var(--card);border-radius:18px;padding:12px 14px;cursor:pointer;width:100%;box-shadow:0 3px 0 var(--line);font:inherit;color:inherit}
+.entry:hover{border-color:var(--pink)}
+.entry .preview{color:var(--muted)}
+.grid30{display:grid;grid-template-columns:repeat(10,1fr);gap:6px}
+.grid30 .cell{aspect-ratio:1;border-radius:10px;background:var(--grey);display:grid;place-items:center;font-size:.78rem;font-weight:800;color:#b3a6ae}
+.grid30 .cell.on{background:var(--pink);color:#fff}
+.wrow{display:grid;grid-template-columns:auto 1fr auto auto;gap:10px;align-items:center;padding:8px 0;border-bottom:2px solid var(--line)}
+.wrow:last-child{border-bottom:0}
+.dots5{color:var(--pink);letter-spacing:1px;font-size:.8rem}
+.x.sm{width:30px;height:30px;font-size:1rem}
+.celebrate{background:linear-gradient(135deg,var(--pink-s),var(--blue-s));border-color:transparent;margin-bottom:14px}
+@media (max-width:420px){.grid30{grid-template-columns:repeat(6,1fr)}.jp{font-size:1.45rem}.tabbar a{font-size:.7rem}}
 #toast{position:fixed;left:50%;top:70px;transform:translateX(-50%);background:var(--ink);color:#fff;padding:9px 18px;border-radius:999px;font-weight:800;opacity:0;pointer-events:none;transition:opacity .25s;z-index:90}
 #toast.show{opacity:1}
 @media (prefers-reduced-motion: reduce){*{transition:none!important;animation:none!important}}
@@ -206,7 +248,7 @@ textarea.answer{min-height:150px;resize:vertical;line-height:1.55}
 </head>
 <body>
 <header class="top"><div class="wrap">
-  <a class="logo" href="#learn">¡Vamos!</a>
+  <a class="logo" href="#hoy">¡Vamos!</a>
   <div class="chips">
     <div class="chip" title="Day streak">🔥 <b id="tStreak">0</b></div>
     <div class="chip" title="XP today">⭐ <b id="tXp">0</b></div>
@@ -215,6 +257,9 @@ textarea.answer{min-height:150px;resize:vertical;line-height:1.55}
 </div></header>
 
 <main class="wrap">
+  <section class="view" id="v-hoy"><div id="hoyArea"></div></section>
+  <section class="view" id="v-diario"><div id="diarioArea"></div></section>
+  <section class="view" id="v-palabras"><div id="palabrasArea"></div></section>
   <!-- LEARN -->
   <section class="view" id="v-learn">
     <div class="card daily">
@@ -223,9 +268,9 @@ textarea.answer{min-height:150px;resize:vertical;line-height:1.55}
         <div class="l"><span id="goalNum">0</span><small>of 30 XP</small></div>
       </div>
       <div class="stack" style="gap:6px">
-        <h2 id="hello">¡Hola, Samhitha!</h2>
+        <h2 id="hello">Grammar lessons</h2>
         <p class="muted small" id="dailyMsg">Daily goal: 30 XP. That's about 2 lessons.</p>
-        <div class="row"><button class="btn pink sm" id="contBtn">Continue learning</button></div>
+        <div class="row"><button class="btn pink sm" id="contBtn">Continue learning</button><a class="btn sm" href="#notes">📒 Notes</a><a class="btn sm" href="#practice">🎯 More practice</a></div>
       </div>
     </div>
     <div id="path"></div>
@@ -254,6 +299,8 @@ textarea.answer{min-height:150px;resize:vertical;line-height:1.55}
   <section class="view" id="v-progress">
     <div class="stack">
       <h1>Your progress</h1>
+      <div id="jProg" class="stack"></div>
+      <h2 style="margin-top:8px">Grammar & practice</h2>
       <div class="stats">
         <div class="stat"><span class="ic">🔥</span><div><b id="sStreak">0</b><span>day streak</span></div></div>
         <div class="stat"><span class="ic">⭐</span><div><b id="sXp">0</b><span>total XP</span></div></div>
@@ -288,10 +335,11 @@ textarea.answer{min-height:150px;resize:vertical;line-height:1.55}
 </main>
 
 <nav class="tabbar" aria-label="Main"><div class="wrap">
-  <a href="#learn"><span class="i">🏠</span>Learn</a>
-  <a href="#practice"><span class="i">🎯</span>Practice</a>
+  <a href="#hoy"><span class="i">✍️</span>Hoy</a>
+  <a href="#diario"><span class="i">📔</span>Diario</a>
+  <a href="#palabras"><span class="i">⭐</span>Words</a>
+  <a href="#learn"><span class="i">📘</span>Grammar</a>
   <a href="#progress"><span class="i">📊</span>Progress</a>
-  <a href="#notes"><span class="i">📒</span>Notes</a>
 </div></nav>
 
 <!-- lesson player -->
@@ -306,5 +354,6 @@ textarea.answer{min-height:150px;resize:vertical;line-height:1.55}
 
 <script src="course.js"></script>
 <script src="app.js"></script>
+<script src="journal.js"></script>
 </body>
 </html>
