@@ -62,7 +62,7 @@ a{color:inherit}
 
 /* bottom nav */
 .tabbar{position:fixed;left:0;right:0;bottom:0;z-index:30;background:var(--card);border-top:2px solid var(--line)}
-.tabbar .wrap{display:grid;grid-template-columns:repeat(5,1fr);padding-top:6px;padding-bottom:calc(6px + env(safe-area-inset-bottom))}
+.tabbar .wrap{display:grid;grid-template-columns:repeat(6,1fr);padding-top:6px;padding-bottom:calc(6px + env(safe-area-inset-bottom))}
 .tabbar a{display:flex;flex-direction:column;align-items:center;gap:2px;text-decoration:none;color:var(--muted);font-size:.78rem;font-weight:800;padding:6px 0;border-radius:14px}
 .tabbar a .i{font-size:1.4rem;line-height:1}
 .tabbar a[aria-current="page"]{color:var(--pink);background:var(--pink-s)}
@@ -240,6 +240,40 @@ body.wide main.wrap,body.wide .top .wrap{max-width:1080px}
 .x.sm{width:30px;height:30px;font-size:1rem}
 .celebrate{background:linear-gradient(135deg,var(--pink-s),var(--blue-s));border-color:transparent;margin-bottom:14px}
 @media (max-width:420px){.grid30{grid-template-columns:repeat(6,1fr)}.jp{font-size:1.45rem}.tabbar a{font-size:.7rem}}
+
+/* verbos */
+.tabs{display:flex;gap:6px;background:var(--card);border:2px solid var(--line);border-radius:16px;padding:5px}
+.tabs button{border:0;background:transparent;padding:9px 14px;border-radius:12px;font-weight:800;cursor:pointer;color:var(--muted);font-size:.92rem}
+.tabs button:hover{color:var(--ink)}
+.tabs button[aria-pressed="true"]{background:var(--pink);color:#fff}
+
+.vstats{display:grid;grid-template-columns:repeat(4,1fr);gap:8px}
+.vstats div{background:var(--bg);border-radius:14px;padding:8px 10px}
+.vstats b{display:block;font-family:var(--display);font-size:1.35rem;font-variant-numeric:tabular-nums}
+.vstats span{font-size:.75rem;color:var(--muted)}
+.vtabs{overflow-x:auto;flex-wrap:nowrap}
+.vtabs button{white-space:nowrap}
+.vtabs button[aria-pressed="true"]{background:var(--pink)}
+.eyebrow{font-size:.78rem;font-weight:800;letter-spacing:.05em;text-transform:uppercase;color:var(--muted);margin-bottom:6px}
+.vcard{border-color:var(--pink-s)}
+.vq{display:flex;flex-direction:column;align-items:center;gap:2px;padding:18px 0;background:var(--pink-s);border-radius:18px}
+.vq .vp{font-size:1.05rem;color:var(--pink-d);font-weight:800}
+.vq .vi{font-family:var(--display);font-size:2.4rem;font-weight:700;line-height:1.1}
+.vin{font-size:1.35rem;text-align:center}
+.answer.okin{border-color:var(--good);background:var(--good-s)}
+.answer.noin{border-color:var(--bad);background:var(--bad-s)}
+.answer.retype{border-color:var(--gold);background:#fff8e1}
+.shake{animation:shake .35s}
+@keyframes shake{0%,100%{transform:translateX(0)}25%{transform:translateX(-6px)}75%{transform:translateX(6px)}}
+.conj tr.hi td{background:var(--gold);color:var(--ink)}
+.conj tr.hi td:first-child{color:var(--ink)}
+table.vmap{border-collapse:separate;border-spacing:4px}
+table.vmap th{font-size:.72rem;color:var(--muted);font-weight:800;text-align:center;padding:2px}
+table.vmap td{padding:0;border:0}
+.vmap .vgrp{font-family:var(--display);font-weight:600;color:var(--pink-d);padding:10px 0 2px}
+.vmap .vname{font-size:.85rem;padding-right:8px;white-space:nowrap}
+.vcell{width:44px;height:30px;border:0;border-radius:8px;cursor:pointer;font-size:.72rem;font-weight:800;color:var(--ink)}
+@media (max-width:480px){.vstats{gap:5px}.vstats div{padding:6px 7px}.vstats b{font-size:1.05rem}.vstats span{font-size:.62rem;line-height:1.15;display:block}.vq .vi{font-size:2rem}.tabbar a{font-size:.66rem}.tabbar a .i{font-size:1.25rem}}
 #toast{position:fixed;left:50%;top:70px;transform:translateX(-50%);background:var(--ink);color:#fff;padding:9px 18px;border-radius:999px;font-weight:800;opacity:0;pointer-events:none;transition:opacity .25s;z-index:90}
 #toast.show{opacity:1}
 @media (prefers-reduced-motion: reduce){*{transition:none!important;animation:none!important}}
@@ -258,6 +292,7 @@ body.wide main.wrap,body.wide .top .wrap{max-width:1080px}
 
 <main class="wrap">
   <section class="view" id="v-hoy"><div id="hoyArea"></div></section>
+  <section class="view" id="v-verbos"><div id="verbosArea"></div></section>
   <section class="view" id="v-diario"><div id="diarioArea"></div></section>
   <section class="view" id="v-palabras"><div id="palabrasArea"></div></section>
   <!-- LEARN -->
@@ -336,6 +371,7 @@ body.wide main.wrap,body.wide .top .wrap{max-width:1080px}
 
 <nav class="tabbar" aria-label="Main"><div class="wrap">
   <a href="#hoy"><span class="i">✍️</span>Hoy</a>
+  <a href="#verbos"><span class="i">🔤</span>Verbos</a>
   <a href="#diario"><span class="i">📔</span>Diario</a>
   <a href="#palabras"><span class="i">⭐</span>Words</a>
   <a href="#learn"><span class="i">📘</span>Grammar</a>
@@ -355,5 +391,6 @@ body.wide main.wrap,body.wide .top .wrap{max-width:1080px}
 <script src="course.js"></script>
 <script src="app.js"></script>
 <script src="journal.js"></script>
+<script src="verbs.js"></script>
 </body>
 </html>

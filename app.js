@@ -792,7 +792,7 @@ function pVerbs(area){
 }
 
 /* ============ ROUTER ============ */
-const VIEWS = ["hoy","diario","palabras","learn","practice","progress","notes"];
+const VIEWS = ["hoy","verbos","diario","palabras","learn","practice","progress","notes"];
 function route(){
   let v = (location.hash || "#hoy").slice(1); if(!VIEWS.includes(v)) v = "hoy";
   VIEWS.forEach(x => $("v-"+x).classList.toggle("on", x === v));
@@ -802,6 +802,7 @@ function route(){
   const J = window.J;
   if(J && v === "hoy") J.renderHoy();
   if(J && v === "diario") J.renderDiario();
+  if(v === "verbos" && window.VB) window.VB.render();
   if(J && v === "palabras") J.renderPalabras();
   if(v === "learn") renderLearn();
   if(v === "progress"){ renderProgress(); J && J.renderJournalProgress(); }
